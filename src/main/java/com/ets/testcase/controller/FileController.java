@@ -3,6 +3,7 @@ package com.ets.testcase.controller;
 import com.ets.testcase.entity.FileEntity;
 import com.ets.testcase.entity.FileResponse;
 import com.ets.testcase.service.FileService;
+import com.google.common.io.Files;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,15 +30,21 @@ import java.util.stream.Collectors;
 public class FileController {
 
     private final FileService fileService;
+    private final ArrayList<String> acceptFileTypes;
 
     @Autowired
     public FileController(FileService fileService) {
         this.fileService = fileService;
+        this.acceptFileTypes = new ArrayList<>(Arrays.asList("png","jpeg","jpg","docx","pdf","xlsx"));
     }
 
     @PostMapping
     public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file) {
         try {
+            if (!acceptFileTypes.contains(Files.getFileExtension(file.getOriginalFilename()))){
+               return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(String.format("Could not upload the fileExtension: %s!", Files.getFileExtension(file.getOriginalFilename())));
+            }
             fileService.save(file);
 
             return ResponseEntity.status(HttpStatus.OK)
