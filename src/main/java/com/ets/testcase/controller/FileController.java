@@ -95,8 +95,15 @@ public class FileController {
     }
 
     @DeleteMapping("{id}")
-    public void deleteFile(@PathVariable Long id){
-        fileService.deleteFile(id);
+    public ResponseEntity<String> deleteFile(@PathVariable Long id){
+        try{
+            fileService.deleteFile(id);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(String.format("File deleted successfully"));
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(String.format("File could not be deleted"));
+        }
     }
 
 }
